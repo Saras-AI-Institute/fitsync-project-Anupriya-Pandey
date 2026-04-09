@@ -1,75 +1,67 @@
 import pandas as pd
 
-def load_data():
+
+def load_data(filepath='data/health_data.csv'):
     """
-    This function loads the health data CSV file and processes it by handling missing values intelligently.
-    - It fills missing 'Steps' with its median value,
-    - Fills missing 'Sleep_Hours' with 7.0,
-    - Fills missing 'Heart_Rate_bpm' with 68,
-    - Fills other columns with their respective median,
-    - Converts the 'Date' column to datetime objects.
-    Returns:
-    - A cleaned pandas DataFrame.
+    Load health data from CSV, clean missing values, and standardize column names.
     """
-    try:
-        # Load the CSV file
-    df = pd.read_csv('data/health_data.csv')
-    
-        # Fill missing values for 'Steps' with the median value
+    df = pd.read_csv(filepath)
+
+    # Remove spaces from column names
+    df.columns = df.columns.str.strip()
+
+    # Rename possible column variations
+    df.rename(columns={
+        'Sleep_Hours': 'Sleep_hours',
+        'sleep_hours': 'Sleep_hours',
+        'Heart_Rate_bpm': 'heart_rate_bpm',
+        'Heart_rate_bpm': 'heart_rate_bpm'
+    }, inplace=True)
+
     if 'Steps' in df.columns:
         df['Steps'].fillna(df['Steps'].median(), inplace=True)
-    
-        # Fill missing values for 'Sleep_Hours' with 7.0
-        if 'Sleep_Hours' in df.columns:
-            df['Sleep_Hours'].fillna(7.0, inplace=True)
-    
-        # Fill missing values for 'Heart_Rate_bpm' with 68
-        if 'Heart_Rate_bpm' in df.columns:
-            df['Heart_Rate_bpm'].fillna(68, inplace=True)
-    
-        # Fill missing values for other columns with their median values
-        for column in df.columns:
-            if df[column].isnull().sum() > 0:
-        df[column].fillna(df[column].median(), inplace=True)
-    
-        # Convert the 'Date' column to datetime objects
-        if 'Date' in df.columns:
-            df['Date'] = pd.to_datetime(df['Date'])
-    
+
+    if 'Sleep_hours' in df.columns:
+        df['Sleep_hours'].fillna(7.0, inplace=True)
+
+    if 'heart_rate_bpm' in df.columns:
+        df['heart_rate_bpm'].fillna(68, inplace=True)
+
+    for column in df.columns:
+        if df[column].isnull().any() and df[column].dtype != 'object':
+            df[column].fillna(df[column].median(), inplace=True)
+
+    if 'Date' in df.columns:
+        df['Date'] = pd.to_datetime(df['Date'])
+
     return df
 
-    except FileNotFoundError:
-        print("The file 'health_data.csv' does not exist in the 'data' directory.")
-        return None
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
 
 def calculate_recovery_score(df):
     """
-    Calculate and add a 'Recovery_score' column to the DataFrame based on sleep hours, heart rate, and steps.
-
-    Parameters:
-        df (pd.DataFrame): DataFrame containing health metrics.
-
-    Returns:
-        pd.DataFrame: DataFrame with a new 'Recovery_score' column.
+    Calculate Recovery Score
     """
-    # Initialize 'Recovery_score' column with a base score of 50
-    df['Recovery_score'] = 50
+    df['Recovery_Score'] = 50
 
-    # Adjust score based on Sleep Hours
-    df.loc[df['Sleep_Hours'] >= 7, 'Recovery_score'] += 20  # Good sleep improves score
-    df.loc[df['Sleep_Hours'] < 6, 'Recovery_score'] -= 15   # Poor sleep reduces score
+    if 'Sleep_hours' in df.columns:
+        df.loc[df['Sleep_hours'] >= 7, 'Recovery_Score'] += 20
+        df.loc[df['Sleep_hours'] < 6, 'Recovery_Score'] -= 15
 
-    # Adjust score based on Heart Rate bpm
-    df.loc[df['Heart_Rate_bpm'] <= 70, 'Recovery_score'] += 10  # Lower heart rate improves score
-    df.loc[df['Heart_Rate_bpm'] > 85, 'Recovery_score'] -= 10   # Higher heart rate reduces score
+    if 'heart_rate_bpm' in df.columns:
+        df.loc[df['heart_rate_bpm'] <= 70, 'Recovery_Score'] += 10
+        df.loc[df['heart_rate_bpm'] > 85, 'Recovery_Score'] -= 10
 
-    # Adjust score based on Steps
-    df.loc[(df['Steps'] >= 8000) & (df['Steps'] <= 14000), 'Recovery_score'] += 5  # Moderate activity is good
-    df.loc[df['Steps'] < 4000, 'Recovery_score'] -= 5   # Very low activity reduces score
-    df.loc[df['Steps'] > 16000, 'Recovery_score'] -= 5  # High activity might cause strain
-    # Ensure the Recovery_score stays within the range [0, 100]
-    df['Recovery_score'] = df['Recovery_score'].clip(lower=0, upper=100)
+    if 'Steps' in df.columns:
+        df.loc[df['Steps'] >= 8000, 'Recovery_Score'] += 5
+        df.loc[df['Steps'] < 4000, 'Recovery_Score'] -= 5
+        df.loc[df['Steps'] > 14000, 'Recovery_Score'] -= 5
+
+    df['Recovery_Score'] = df['Recovery_Score'].clip(0, 100)
+
+    return df
+
+
+def process_data():
+    df = load_data()
+    df = calculate_recovery_score(df)
     return df
