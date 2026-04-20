@@ -10,11 +10,15 @@ st.set_page_config(
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
 
-# ----------- TOGGLE BUTTON -----------
-col1, col2 = st.columns([6,1])
+# ----------- HEADER -----------
+col1, col2 = st.columns([8, 1])
+
+with col1:
+    st.title("💪 FitSync Dashboard")
+
 with col2:
-    if st.button("🌙" if st.session_state.dark_mode else "☀️"):
-        st.session_state.dark_mode = not st.session_state.dark_mode
+    toggle = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
+    st.session_state.dark_mode = toggle
 
 # ----------- THEME COLORS -----------
 if st.session_state.dark_mode:
@@ -35,80 +39,97 @@ else:
 # ----------- GLOBAL CSS -----------
 st.markdown(f"""
     <style>
-        /* App background */
         .stApp {{
             background-color: {bg_color};
             color: {text_color};
+            transition: all 0.3s ease;
         }}
 
-        /* Sidebar background */
         section[data-testid="stSidebar"] {{
             background-color: {sidebar_bg};
         }}
 
-        /* ✅ FIX: Sidebar text visible */
         section[data-testid="stSidebar"] * {{
             color: {text_color} !important;
         }}
 
-        /* Text */
         h1, h2, h3, h4, h5, h6, p, div, span, label {{
             color: {text_color} !important;
         }}
 
-        /* Cards */
         .card {{
             background-color: {card_color};
-            padding: 20px;
-            border-radius: 15px;
+            padding: 22px;
+            border-radius: 18px;
             border: 1px solid {border_color};
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }}
 
-        /* Button */
+        .card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
+        }}
+
         .stButton>button {{
-            background-color: {heading_color};
-            color: {"black" if st.session_state.dark_mode else "white"};
-            border-radius: 10px;
-            padding: 8px 16px;
+            background: linear-gradient(135deg, {heading_color}, #6a11cb);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 18px;
             border: none;
+            font-weight: 600;
         }}
 
         .stButton>button:hover {{
-            opacity: 0.85;
+            transform: scale(1.05);
+            opacity: 0.9;
         }}
 
-        /* Info box */
-        .stAlert {{
-            background-color: {card_color};
-            color: {text_color};
-            border: 1px solid {border_color};
+        .feature-list li {{
+            margin-bottom: 8px;
         }}
     </style>
 """, unsafe_allow_html=True)
 
 # ----------- MAIN CONTENT -----------
-st.title("💪 Welcome to FitSync")
 
 st.markdown("""
 <div class="card">
-    <h3>Your Personal Health Analytics Dashboard</h3>
+    <h2>🏋️ Your Personal Health Analytics Dashboard</h2>
     <p>Track your fitness, monitor your health, and stay consistent with your goals.</p>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="card">
-    <h4>🚀 Features</h4>
-    <ul>
-        <li>📊 Health Data Tracking</li>
-        <li>📈 Progress Visualization</li>
-        <li>🤖 AI-Based Insights</li>
-        <li>🎯 Goal Setting</li>
-    </ul>
-</div>
-""", unsafe_allow_html=True)
+# ----------- FEATURES SECTION -----------
+col1, col2 = st.columns(2)
 
-st.info("👉 Use the sidebar to navigate between different sections") 
+with col1:
+    st.markdown("""
+    <div class="card">
+        <h4>📊 Core Features</h4>
+        <ul class="feature-list">
+            <li>📊 Health Data Tracking</li>
+            <li>📈 Progress Visualization</li>
+            <li>🎯 Goal Setting</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
- 
+with col2:
+    st.markdown("""
+    <div class="card">
+        <h4>🤖 Smart Features</h4>
+        <ul class="feature-list">
+            <li>🤖 AI-Based Insights</li>
+            <li>⏱️ Daily Activity Monitoring</li>
+            <li>💡 Personalized Tips</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ----------- CTA BUTTON -----------
+if st.button("🚀 Get Started"):
+    st.success("Welcome! Use the sidebar to explore FitSync features.")
+
+# ----------- INFO -----------
+st.info("👉 Use the sidebar to navigate between different sections")
